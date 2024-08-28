@@ -164,7 +164,7 @@ final class PluginController {
             return
         }
 
-        assert(!central.isScanning)
+   
 
         scan = StreamingTask(parameters: .init(services: args.serviceUuids.map({ uuid in CBUUID(data: uuid.data) })))
 

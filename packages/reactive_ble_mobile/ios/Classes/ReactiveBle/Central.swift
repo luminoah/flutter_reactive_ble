@@ -92,7 +92,7 @@ final class Central {
 
                 central.characteristicNotifyRegistry.updateTask(
                     key: q,
-                    action: { $0.complete(error: error) }
+                    action: { $0.complete(error: nil) }
                 )
             },
             onCharacteristicValueUpdate: papply(weak: self) { central, characteristic, error in
