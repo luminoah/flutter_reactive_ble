@@ -33,3 +33,6 @@ flutter:
         pluginClass: ReactiveBlePlugin
       ios:
         pluginClass: ReactiveBlePlugin
+      web:
+        pluginClass: ReactiveBlePluginStub
+        fileName: reactive_ble_mobile_stub.dart

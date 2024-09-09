@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:flutter_reactive_ble/platform_utils.dart';
 import 'package:flutter_reactive_ble/src/connected_device_operation.dart';
 import 'package:flutter_reactive_ble/src/debug_logger.dart';
 import 'package:flutter_reactive_ble/src/device_connector.dart';
@@ -103,7 +104,7 @@ class FlutterReactiveBle {
         print,
       );
 
-      if (Platform.isAndroid || Platform.isIOS) {
+      if (PlatformUtils.isAndroid || PlatformUtils.isIOS) {
         ReactiveBlePlatform.instance = const ReactiveBleMobilePlatformFactory().create(
           logger: _debugLogger,
         );
@@ -118,7 +119,7 @@ class FlutterReactiveBle {
       );
       _deviceScanner = DeviceScannerImpl(
         blePlatform: _blePlatform,
-        platformIsAndroid: () => Platform.isAndroid,
+        platformIsAndroid: () => PlatformUtils.isAndroid,
         delayAfterScanCompletion: Future<void>.delayed(
           const Duration(milliseconds: 300),
         ),
@@ -307,8 +308,7 @@ class FlutterReactiveBle {
   ///
   /// When discovery fails this method throws an [Exception].
   @Deprecated("Use `discoverAllServices` and `getDiscoverServices`")
-  Future<List<DiscoveredService>> discoverServices(String deviceId) =>
-      _connectedDeviceOperator.discoverServices(deviceId);
+  Future<List<DiscoveredService>> discoverServices(String deviceId) => _connectedDeviceOperator.discoverServices(deviceId);
 
   /// Performs service discovery on the peripheral.
   ///
@@ -326,9 +326,7 @@ class FlutterReactiveBle {
   ///
   /// Note: On Android, this method performs service discovery if one was done yet after connecting the device.
   Future<List<Service>> getDiscoveredServices(String deviceId) async {
-    _disconnectionUpdates ??= connectedDeviceStream
-        .where((update) => update.connectionState == DeviceConnectionState.disconnected)
-        .listen((update) {
+    _disconnectionUpdates ??= connectedDeviceStream.where((update) => update.connectionState == DeviceConnectionState.disconnected).listen((update) {
       _services[update.deviceId]?.forEach((service) => service._markInvalid());
       _services[update.deviceId]?.clear();
     });
@@ -383,8 +381,7 @@ class FlutterReactiveBle {
       service.id == discoveredService.serviceId && service._instanceId == discoveredService.serviceInstanceId;
 
   bool _isMatchingCharacteristic(Characteristic char, DiscoveredCharacteristic discoveredCharacteristic) =>
-      char.id == discoveredCharacteristic.characteristicId &&
-      char._instanceId == discoveredCharacteristic.characteristicInstanceId;
+      char.id == discoveredCharacteristic.characteristicId && char._instanceId == discoveredCharacteristic.characteristicInstanceId;
 
   final _services = <String, List<Service>>{};
 
@@ -393,8 +390,7 @@ class FlutterReactiveBle {
   /// Always completes with an error on iOS, as there is no way (and no need) to perform this operation on iOS.
   ///
   /// The connection may need to be reestablished after successful GATT attribute cache clearing.
-  Future<void> clearGattCache(String deviceId) =>
-      _blePlatform.clearGattCache(deviceId).then((info) => info.dematerialize());
+  Future<void> clearGattCache(String deviceId) => _blePlatform.clearGattCache(deviceId).then((info) => info.dematerialize());
 
   /// Reads the RSSI of the of the peripheral with the given device ID.
   /// The peripheral must be connected, otherwise a [PlatformException] will be
@@ -414,9 +410,7 @@ class FlutterReactiveBle {
 
   Future<Iterable<Characteristic>> resolve(QualifiedCharacteristic characteristic) async {
     final services = await getDiscoveredServices(characteristic.deviceId);
-    return services
-        .withId(characteristic.serviceId)
-        .expand((service) => service.characteristics.withId(characteristic.characteristicId));
+    return services.withId(characteristic.serviceId).expand((service) => service.characteristics.withId(characteristic.characteristicId));
   }
 
   Future<Characteristic> resolveSingle(QualifiedCharacteristic characteristic) async {
@@ -540,8 +534,7 @@ class Characteristic {
     final isDisconnected = _lib.connectedDeviceStream
         .where((update) =>
             update.deviceId == service.deviceId &&
-            (update.connectionState == DeviceConnectionState.disconnecting ||
-                update.connectionState == DeviceConnectionState.disconnected))
+            (update.connectionState == DeviceConnectionState.disconnecting || update.connectionState == DeviceConnectionState.disconnected))
         .cast<void>()
         .firstWhere((_) => true, orElse: () {});
 
